@@ -7,13 +7,6 @@
 
 import UIKit
 
-struct Profile {
-    let avatarImageName: String?
-    let fullName: String
-    let username: String
-    let bio: String
-}
-
 final class ProfileViewController: UIViewController {
     
     // MARK: - UI
@@ -62,23 +55,49 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .yapBlack
+        setupUI()        
+        configureMockProfile()
+    }
+    
+    // MARK: - Public methods
+    
+    func configure(with profile: Profile) {
+        if let imageName = profile.avatarImageName, let image = UIImage(named: imageName) {
+            avatarImageView.image = image
+            avatarImageView.backgroundColor = .clear
+        } else {
+            avatarImageView.image = nil
+            avatarImageView.backgroundColor = .yapBlack
+        }
         
-        setupViews()
-        setupConstraints()
-        setupActions()
+        nameLabel.text = profile.fullName
+        loginNameLabel.text = profile.username
+        descriptionLabel.text = profile.bio
         
-        // Mock data
-        let mockProfile = Profile(
+        let logoutImage = UIImage(named: "logout_button")?.withRenderingMode(.alwaysOriginal)
+        logoutButton.setImage(logoutImage, for: .normal)
+
+        let isEmpty = profile.fullName.isEmpty && profile.username.isEmpty && profile.bio.isEmpty
+        logoutButton.isHidden = isEmpty
+    }
+    
+    // MARK: - Private Methods
+    private func configureMockProfile() {
+        let profile = Profile(
             avatarImageName: "avatar",
             fullName: "Екатерина Новикова",
             username: "@ekaterina_nov",
             bio: "Hello, World!"
         )
-        configure(with: mockProfile)
+        configure(with: profile)
     }
     
-    // MARK: - Setup
+    private func setupUI() {
+        view.backgroundColor = .yapBlack
+        setupViews()
+        setupConstraints()
+        setupActions()
+    }
     
     private func setupViews() {
         view.addSubview(avatarImageView)
@@ -120,28 +139,6 @@ final class ProfileViewController: UIViewController {
             self.configure(with: Profile(avatarImageName: nil, fullName: "", username: "", bio: ""))
         }
         logoutButton.addAction(action, for: .touchUpInside)
-    }
-    
-    // MARK: - Configuration
-    
-    func configure(with profile: Profile) {
-        if let imageName = profile.avatarImageName, let image = UIImage(named: imageName) {
-            avatarImageView.image = image
-            avatarImageView.backgroundColor = .clear
-        } else {
-            avatarImageView.image = nil
-            avatarImageView.backgroundColor = .yapBlack
-        }
-        
-        nameLabel.text = profile.fullName
-        loginNameLabel.text = profile.username
-        descriptionLabel.text = profile.bio
-        
-        let logoutImage = UIImage(named: "logout_button")?.withRenderingMode(.alwaysOriginal)
-        logoutButton.setImage(logoutImage, for: .normal)
-
-        let isEmpty = profile.fullName.isEmpty && profile.username.isEmpty && profile.bio.isEmpty
-        logoutButton.isHidden = isEmpty
     }
 }
 
