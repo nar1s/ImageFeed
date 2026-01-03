@@ -8,6 +8,9 @@
 import Foundation
 
 final class OAuth2TokenStorage {
+    static let shared = OAuth2TokenStorage()
+    private init() {}
+
     private let defaults = UserDefaults.standard
     private let tokenKey = "com.imagefeed.oauth.bearerToken"
     
@@ -24,5 +27,4 @@ final class OAuth2TokenStorage {
         }
     }
 }
-
 

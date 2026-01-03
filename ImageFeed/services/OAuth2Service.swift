@@ -30,7 +30,8 @@ final class OAuth2Service {
         }
     }
     
-    private let tokenStorage = OAuth2TokenStorage()
+    private let tokenStorage = OAuth2TokenStorage.shared
+    private let decoder = JSONDecoder()
     
     //MARK: - Public methods
     
@@ -49,7 +50,7 @@ final class OAuth2Service {
             switch result {
             case .success(let data):
                 do {
-                    let tokenResponse = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
+                    let tokenResponse = try self.decoder.decode(OAuthTokenResponseBody.self, from: data)
                     self.tokenStorage.token = tokenResponse.accessToken
                     DispatchQueue.main.async {
                         completion(.success(tokenResponse.accessToken))
@@ -87,7 +88,7 @@ final class OAuth2Service {
         guard let authTokenUrl = urlComponents.url else { return nil }
 
         var request = URLRequest(url: authTokenUrl)
-        request.httpMethod = "POST"
+        request.httpMethod = HTTPMethod.post.rawValue
         return request
     }
 }

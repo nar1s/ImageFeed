@@ -11,7 +11,7 @@ final class SplashViewController: UIViewController {
     // MARK: - Private properties
     
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-    private let storage = OAuth2TokenStorage()
+    private let storage = OAuth2TokenStorage.shared
     
     // MARK: - Lifecycle
     
@@ -37,21 +37,24 @@ final class SplashViewController: UIViewController {
     // MARK: - Private helpers
     
     private func switchToTabBarController() {
-        guard let window = UIApplication.shared.windows.first else {
+        // Obtain the window from the active UIWindowScene (iOS 13+)
+        let windowScene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive } ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first
+
+        guard
+            let scene = windowScene,
+            let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first
+        else {
             assertionFailure("Invalid window configuration")
             return
         }
-        
+
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarController")
-        
         window.rootViewController = tabBarController
-        window.makeKeyAndVisible()
-        UIView.transition(with: window,
-                          duration: 0.3,
-                          options: [.transitionCrossDissolve],
-                          animations: nil,
-                          completion: nil)
     }
 }
 
@@ -74,10 +77,11 @@ extension SplashViewController {
     }
 }
 
-// MARK: - AuthViewControllerDelegate
+// MARK: - AuthViewControllerDelegate)
 
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         switchToTabBarController()
     }
 }
+
