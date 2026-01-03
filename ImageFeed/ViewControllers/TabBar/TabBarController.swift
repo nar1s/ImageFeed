@@ -14,7 +14,6 @@ final class TabBarController: UITabBarController {
         super.awakeFromNib()
         setupTabBarAppearance()
         setupViewControllers()
-        print("вызвался")
     }
 
     // MARK: - Setup
