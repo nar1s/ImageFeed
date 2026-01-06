@@ -1,0 +1,52 @@
+//
+//  URLSession+Data.swift
+//  ImageFeed
+//
+//  Created by Павел Кузнецов on 02.01.2026.
+//
+
+import Foundation
+
+enum NetworkError: Error {
+    case httpStatusCode(Int)
+    case urlRequestError(Error)
+    case urlSessionError
+    case invalidRequest
+    case decodingError(Error)
+}
+
+extension URLSession {
+    func data(
+        for request: URLRequest,
+        completion: @escaping (Result<Data, Error>) -> Void
+    ) -> URLSessionTask {
+        let fulfillCompletionOnTheMainThread: (Result<Data, Error>) -> Void = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+        
+        let task = dataTask(with: request, completionHandler: { data, response, error in
+            if let data, let response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
+                if 200 ..< 300 ~= statusCode {
+                    fulfillCompletionOnTheMainThread(.success(data))
+                } else {
+                    if let body = String(data: data, encoding: .utf8) {
+                        print("URLSession.data: HTTP \(statusCode). Response body:\n\(body)")
+                    } else {
+                        print("URLSession.data: HTTP \(statusCode). Response body is not UTF-8 decodable, size: \(data.count) bytes")
+                    }
+                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
+                }
+            } else if let error = error {
+                print("URLSession.data: URL request error: \(error)")
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
+            } else {
+                print("URLSession.data: unexpected URLSession error (no data/response/error)")
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError)) 
+            }
+        })
+        
+        return task
+    }
+}
