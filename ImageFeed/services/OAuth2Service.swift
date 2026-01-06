@@ -20,18 +20,10 @@ final class OAuth2Service {
         let scope: String?
         let createdAt: Int?
         let refreshToken: String?
-        
-        private enum CodingKeys: String, CodingKey {
-            case accessToken = "access_token"
-            case tokenType = "token_type"
-            case scope
-            case createdAt = "created_at"
-            case refreshToken = "refresh_token"
-        }
     }
     
     private let tokenStorage = OAuth2TokenStorage.shared
-    private let decoder = JSONDecoder()
+    private let decoder = JSONDecoder.snakeCase()
     
     //MARK: - Public methods
     
