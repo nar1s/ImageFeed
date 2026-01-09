@@ -50,7 +50,11 @@ final class ProfileImageService {
                     )
 
             case .failure(let error):
-                print("[fetchProfileImageURL]: Ошибка запроса: \(error.localizedDescription)")
+                Logger.logError(
+                    context: "ProfileImageService.fetchProfileImage",
+                    error: error,
+                    request: request
+                )
                 completion(.failure(error))
             }
         }

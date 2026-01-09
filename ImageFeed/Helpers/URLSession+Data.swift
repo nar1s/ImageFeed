@@ -31,11 +31,14 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     fulfillCompletionOnTheMainThread(.success(data))
                 } else {
+                    Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.httpStatusCode(statusCode), request: request)
                     fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
+                Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.urlRequestError(error), request: request)
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
             } else {
+                Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.urlSessionError, request: request)
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError)) 
             }
         })
@@ -60,16 +63,12 @@ extension URLSession {
                     let decodedObject = try decoder.decode(T.self, from: data)
                     completion(.success(decodedObject))
                 } catch {
-                    if let decodingError = error as? DecodingError {
-                        print("Ошибка декодирования: \(decodingError), Данные: \(String(data: data, encoding: .utf8) ?? "")")
-                    } else {
-                        print("Ошибка декодирования: \(error.localizedDescription), Данные: \(String(data: data, encoding: .utf8) ?? "")")
-                    }
+                    Logger.logError(context: "URLSession.objectTask(for:completion:)", error: error, request: request)
                     completion(.failure(error))
                 }
 
             case .failure(let error):
-                print("Ошибка запроса: \(error.localizedDescription)")
+                Logger.logError(context: "URLSession.objectTask(for:completion:)", error: error, request: request)
                 completion(.failure(error))
             }
         }
