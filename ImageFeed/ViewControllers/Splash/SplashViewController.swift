@@ -33,7 +33,7 @@ final class SplashViewController: UIViewController {
         if let token = storage.token {
             fetchProfile(token: token)
         } else {
-            performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+            presentAuthViewController()
         }
     }
     
@@ -100,7 +100,7 @@ final class SplashViewController: UIViewController {
     }
     
     private func setupImageView() {
-        let imageSplashScreenLogo = UIImage(named: "splashScreenLogo")
+        let imageSplashScreenLogo = UIImage(resource: .splashScreenLogo)
         
         logoImageView = UIImageView(image: imageSplashScreenLogo)
         
