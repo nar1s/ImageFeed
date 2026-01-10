@@ -6,23 +6,23 @@
 //
 
 import Foundation
+import SwiftKeychainWrapper
 
 final class OAuth2TokenStorage {
     static let shared = OAuth2TokenStorage()
     private init() {}
 
-    private let defaults = UserDefaults.standard
     private let tokenKey = "com.imagefeed.oauth.bearerToken"
     
     var token: String? {
         get {
-            defaults.string(forKey: tokenKey)
+            return KeychainWrapper.standard.string(forKey: tokenKey)
         }
         set {
-            if let value = newValue {
-                defaults.set(value, forKey: tokenKey)
+            if let token = newValue {
+                KeychainWrapper.standard.set(token, forKey: tokenKey)
             } else {
-                defaults.removeObject(forKey: tokenKey)
+                KeychainWrapper.standard.removeObject(forKey: tokenKey)
             }
         }
     }

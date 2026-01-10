@@ -6,8 +6,12 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
+    
+    private let profileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
     
     // MARK: - UI
     
@@ -55,48 +59,88 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()        
-        configureMockProfile()
+        setupUI()
+        setupObservers()
+        configure()
     }
     
     // MARK: - Public methods
     
-    func configure(with profile: Profile) {
-        if let imageName = profile.avatarImageName, let image = UIImage(named: imageName) {
-            avatarImageView.image = image
-            avatarImageView.backgroundColor = .clear
-        } else {
-            avatarImageView.image = nil
-            avatarImageView.backgroundColor = .yapBlack
+    func configure() {
+        
+        if let profile = ProfileService.shared.profile {
+            updateProfileDetails(profile: profile)
         }
         
-        nameLabel.text = profile.fullName
-        loginNameLabel.text = profile.username
-        descriptionLabel.text = profile.bio
-        
-        let logoutImage = UIImage(named: "logout_button")?.withRenderingMode(.alwaysOriginal)
+        let logoutImage = UIImage(resource: .logoutButton).withRenderingMode(.alwaysOriginal)
         logoutButton.setImage(logoutImage, for: .normal)
-
-        let isEmpty = profile.fullName.isEmpty && profile.username.isEmpty && profile.bio.isEmpty
-        logoutButton.isHidden = isEmpty
     }
     
     // MARK: - Private Methods
-    private func configureMockProfile() {
-        let profile = Profile(
-            avatarImageName: "avatar",
-            fullName: "Екатерина Новикова",
-            username: "@ekaterina_nov",
-            bio: "Hello, World!"
-        )
-        configure(with: profile)
+    private func updateProfileDetails(profile: Profile) {
+        let name = profile.name
+        let login = profile.loginName
+        let bio = profile.bio
+        
+        nameLabel.text = name.isEmpty ? "Имя не указано" : name
+        loginNameLabel.text = login.isEmpty ? "@неизвестный_пользователь" : login
+        descriptionLabel.text = bio.isEmpty ? "Профиль не заполнен" : bio
+        
+        updateAvatar()
+    }
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let imageUrl = URL(string: profileImageURL)
+        else { return }
+        
+        print("imageUrl: \(imageUrl)")
+
+        let placeholderImage = UIImage(systemName: "person.circle.fill")?
+            .withTintColor(.lightGray, renderingMode: .alwaysOriginal)
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 70, weight: .regular, scale: .large))
+
+        let processor = RoundCornerImageProcessor(cornerRadius: 35)
+        avatarImageView.kf.indicatorType = .activity
+        avatarImageView.kf.setImage(
+            with: imageUrl,
+            placeholder: placeholderImage,
+            options: [
+                .processor(processor),
+                .scaleFactor(UIScreen.main.scale),
+                .cacheOriginalImage,
+                .forceRefresh
+            ]) { result in
+
+                switch result {
+                case .success(let value):
+                    print(value.image)
+                    print(value.cacheType)
+                    print(value.source)
+                    
+                case .failure(let error):
+                    print(error)
+                }
+            }
+    }
+    
+    private func setupObservers() {
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
     }
     
     private func setupUI() {
         view.backgroundColor = .yapBlack
         setupViews()
         setupConstraints()
-        setupActions()
     }
     
     private func setupViews() {
@@ -132,13 +176,4 @@ final class ProfileViewController: UIViewController {
             logoutButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
-    
-    private func setupActions() {
-        let action = UIAction { [weak self] _ in
-            guard let self else { return }
-            self.configure(with: Profile(avatarImageName: nil, fullName: "", username: "", bio: ""))
-        }
-        logoutButton.addAction(action, for: .touchUpInside)
-    }
 }
-

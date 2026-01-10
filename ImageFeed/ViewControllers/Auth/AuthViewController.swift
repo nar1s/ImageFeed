@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import ProgressHUD
 
 protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController)
@@ -19,6 +20,7 @@ final class AuthViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureBackButton()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -34,20 +36,32 @@ final class AuthViewController: UIViewController {
             super.prepare(for: segue, sender: sender)
         }
     }
+    
+    private func configureBackButton() {
+        navigationController?.navigationBar.backIndicatorImage = UIImage(resource: .navBackButton)
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(resource: .navBackButton)
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem?.tintColor = .yapBlack
+    }
 }
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+
+        UIBlockingProgressHUD.show()
+
         fetchOAuthToken(code) { [weak self] result in
-            guard let self = self else { return }
-            
+            UIBlockingProgressHUD.dismiss()
+
+            guard let self else { return }
+
             switch result {
             case .success:
-                vc.dismiss(animated: true) {
-                    self.delegate?.didAuthenticate(self)
-                }
-            case .failure(let error):
-                self.presentErrorAlert(error: error)
+                self.delegate?.didAuthenticate(self)
+            case .failure:
+                ProgressHUD.dismiss()
+                self.presentErrorAlert()
+                break
             }
         }
     }
@@ -64,14 +78,13 @@ extension AuthViewController {
         }
     }
     
-    private func presentErrorAlert(error: Error) {
+    private func presentErrorAlert() {
         let alert = UIAlertController(
-            title: "Не удалось авторизоваться",
-            message: error.localizedDescription,
+            title: "Что-то пошло не так(",
+            message: "Не удалось войти в систему",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "Ок", style: .default))
         present(alert, animated: true)
     }
 }
-
