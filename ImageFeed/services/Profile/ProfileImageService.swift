@@ -46,12 +46,14 @@ final class ProfileImageService {
                 self.avatarURL = urlString
                 completion(.success(urlString))
 
-                NotificationCenter.default
-                    .post(
-                        name: ProfileImageService.didChangeNotification,
-                        object: self,
-                        userInfo: ["URL": self.avatarURL ?? ""]
-                    )
+                DispatchQueue.main.async {
+                    NotificationCenter.default
+                        .post(
+                            name: ProfileImageService.didChangeNotification,
+                            object: self,
+                            userInfo: ["URL": self.avatarURL ?? ""]
+                        )
+                }
 
             case .failure(let error):
                 print("[ProfileImageService.fetchProfileImage]: [RequestError] username=\(username) request=\(request) error=\(error)")

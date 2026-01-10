@@ -117,6 +117,12 @@ final class SplashViewController: UIViewController {
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         vc.dismiss(animated: true)
-        switchToTabBarController()
+        guard let token = storage.token else {
+            assertionFailure("Token must exist after successful auth")
+            switchToTabBarController()
+            return
+        }
+        fetchProfile(token: token)
     }
 }
+
