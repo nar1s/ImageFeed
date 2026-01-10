@@ -7,13 +7,6 @@
 
 import UIKit
 
-//struct Profile {
-//    let avatarImageName: String?
-//    let fullName: String
-//    let username: String
-//    let bio: String
-//}
-
 struct Profile {
     let username: String
     let firstName: String

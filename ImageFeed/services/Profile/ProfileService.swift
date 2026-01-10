@@ -19,6 +19,7 @@ final class ProfileService {
         task?.cancel()
 
         guard let request = makeProfileRequest(token: token) else {
+            print("[ProfileService.fetchProfile]: [BadURL] token=\(token)")
             completion(.failure(URLError(.badURL)))
             return
         }
@@ -36,6 +37,7 @@ final class ProfileService {
                 completion(.success(profile))
                 
             case .failure(let error):
+                print("[ProfileService.fetchProfile]: [RequestError] request=\(request) error=\(error)")
                 completion(.failure(error))
             }
             self?.task = nil
@@ -56,4 +58,3 @@ final class ProfileService {
         return request
     }
 }
-

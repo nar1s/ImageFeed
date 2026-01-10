@@ -15,6 +15,7 @@ final class OAuth2Service {
     
     static let shared = OAuth2Service()
     private init() {}
+    let decoder = JSONDecoder()
     
     //MARK: - Private properties
     
@@ -34,7 +35,7 @@ final class OAuth2Service {
     
     private(set) var authToken: String? {
         get {
-            return tokenStorage.token
+            tokenStorage.token
         }
         set {
             tokenStorage.token = newValue
@@ -47,6 +48,7 @@ final class OAuth2Service {
         assert(Thread.isMainThread)
         
         guard lastCode != code else {
+            print("[OAuth2Service.fetchOAuthToken]: [InvalidRequest] code=\(code)")
             completion(.failure(AuthServiceError.invalidRequest))
             return
         }
@@ -57,31 +59,31 @@ final class OAuth2Service {
         guard
             let request = makeOAuthTokenRequest(code: code)
         else {
+            print("[OAuth2Service.fetchOAuthToken]: [InvalidRequest] code=\(code)")
             completion(.failure(AuthServiceError.invalidRequest))
             return
         }
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
-            DispatchQueue.main.async {
-                UIBlockingProgressHUD.dismiss()
-                guard let self = self else { return }
-
-                switch result {
-                case .success(let body):
-                    let authToken = body.accessToken
-                    self.authToken = authToken
-                    completion(.success(authToken))
-
-                    self.task = nil
-                    self.lastCode = nil
-
-                case .failure(let error):
-                    print("[fetchOAuthToken]: Ошибка запроса: \(error.localizedDescription)")
-                    completion(.failure(error)) 
-
-                    self.task = nil
-                    self.lastCode = nil
-                }
+            guard let self else { return }
+            
+            UIBlockingProgressHUD.dismiss()
+            
+            switch result {
+            case .success(let body):
+                let authToken = body.accessToken
+                self.authToken = authToken
+                completion(.success(authToken))
+                
+                self.task = nil
+                self.lastCode = nil
+                
+            case .failure(let error):
+                print("[OAuth2Service.fetchOAuthToken]: [RequestError] code=\(code) request=\(request) error=\(error)")
+                completion(.failure(error))
+                
+                self.task = nil
+                self.lastCode = nil
             }
         }
         self.task = task
@@ -114,19 +116,20 @@ final class OAuth2Service {
 
 extension OAuth2Service {
     private func object(for request: URLRequest, completion: @escaping (Result<OAuthTokenResponseBody, Error>) -> Void) -> URLSessionTask {
-        let decoder = JSONDecoder()
         return urlSession.data(for: request) { (result: Result<Data, Error>) in
             switch result {
             case .success(let data):
                 do {
-                    let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
+                    let body = try self.decoder.decode(OAuthTokenResponseBody.self, from: data)
                     completion(.success(body))
                 }
                 catch {
+                    print("[OAuth2Service.object]: [DecodingError] error=\(error) request=\(request)")
                     completion(.failure(NetworkError.decodingError(error)))
                 }
                 
             case .failure(let error):
+                print("[OAuth2Service.object]: [RequestError] error=\(error) request=\(request)")
                 completion(.failure(error))
             }
         }

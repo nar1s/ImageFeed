@@ -11,11 +11,14 @@ final class SplashViewController: UIViewController {
     
     // MARK: - UI
     
-    private var logoImageView: UIImageView!
+    private let logoImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(resource: .splashScreenLogo))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
     // MARK: - Properties
     
-    private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     private let storage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
     
@@ -100,11 +103,6 @@ final class SplashViewController: UIViewController {
     }
     
     private func setupImageView() {
-        let imageSplashScreenLogo = UIImage(resource: .splashScreenLogo)
-        
-        logoImageView = UIImageView(image: imageSplashScreenLogo)
-        
-        logoImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(logoImageView)
         
         NSLayoutConstraint.activate([

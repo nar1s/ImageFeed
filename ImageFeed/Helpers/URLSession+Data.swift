@@ -31,14 +31,14 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     fulfillCompletionOnTheMainThread(.success(data))
                 } else {
-                    Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.httpStatusCode(statusCode), request: request)
+                    print("[URLSession.data]: [HTTPStatusError] statusCode=\(statusCode) request=\(request)")
                     fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
-                Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.urlRequestError(error), request: request)
+                print("[URLSession.data]: [URLRequestError] error=\(error) request=\(request)")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
             } else {
-                Logger.logError(context: "URLSession.data(for:completion:)", error: NetworkError.urlSessionError, request: request)
+                print("[URLSession.data]: [URLSessionError] request=\(request)")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError)) 
             }
         })
@@ -57,18 +57,18 @@ extension URLSession {
             switch result {
             case .success(let data):
                 if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Полученные данные: \(jsonString)")
+                    print("[URLSession.objectTask]: [ResponseData] request=\(request) body=\(jsonString)")
                 }
                 do {
                     let decodedObject = try decoder.decode(T.self, from: data)
                     completion(.success(decodedObject))
                 } catch {
-                    Logger.logError(context: "URLSession.objectTask(for:completion:)", error: error, request: request)
+                    print("[URLSession.objectTask]: [DecodingError] error=\(error) request=\(request)")
                     completion(.failure(error))
                 }
 
             case .failure(let error):
-                Logger.logError(context: "URLSession.objectTask(for:completion:)", error: error, request: request)
+                print("[URLSession.objectTask]: [RequestError] error=\(error) request=\(request)")
                 completion(.failure(error))
             }
         }

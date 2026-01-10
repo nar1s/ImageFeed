@@ -72,7 +72,7 @@ final class ProfileViewController: UIViewController {
             updateProfileDetails(profile: profile)
         }
         
-        let logoutImage = UIImage(named: "logout_button")?.withRenderingMode(.alwaysOriginal)
+        let logoutImage = UIImage(resource: .logoutButton).withRenderingMode(.alwaysOriginal)
         logoutButton.setImage(logoutImage, for: .normal)
     }
     

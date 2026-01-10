@@ -19,11 +19,14 @@ final class ProfileImageService {
         task?.cancel()
         
         guard let token = OAuth2TokenStorage.shared.token else {
-            completion(.failure(NSError(domain: "ProfileImageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authorization token missing"])))
+            let error = NSError(domain: "ProfileImageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authorization token missing"])
+            print("[ProfileImageService.fetchProfileImage]: [AuthorizationError] username=\(username)")
+            completion(.failure(error))
             return
         }
         
         guard let request = makeProfileImageRequest(username: username, token: token) else {
+            print("[ProfileImageService.fetchProfileImage]: [BadURL] username=\(username)")
             completion(.failure(URLError(.badURL)))
             return
         }
@@ -35,6 +38,7 @@ final class ProfileImageService {
                 
                 guard let urlString = result.profileImage?.small, !urlString.isEmpty else {
                     let error = NSError(domain: "ProfileImageService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Avatar URL not found"])
+                    print("[ProfileImageService.fetchProfileImage]: [NotFound] username=\(username) request=\(request)")
                     completion(.failure(error))
                     return
                 }
@@ -50,11 +54,7 @@ final class ProfileImageService {
                     )
 
             case .failure(let error):
-                Logger.logError(
-                    context: "ProfileImageService.fetchProfileImage",
-                    error: error,
-                    request: request
-                )
+                print("[ProfileImageService.fetchProfileImage]: [RequestError] username=\(username) request=\(request) error=\(error)")
                 completion(.failure(error))
             }
         }
