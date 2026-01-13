@@ -36,7 +36,7 @@ final class ProfileImageService {
             case .success(let result):
                 guard let self = self else { return }
                 
-                guard let urlString = result.profileImage?.small, !urlString.isEmpty else {
+                guard let urlString = result.profileImage?.large, !urlString.isEmpty else {
                     let error = NSError(domain: "ProfileImageService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Avatar URL not found"])
                     print("[ProfileImageService.fetchProfileImage]: [NotFound] username=\(username) request=\(request)")
                     completion(.failure(error))

@@ -23,7 +23,18 @@ struct PhotoResult: Codable {
     let height: Int?
     let createdAt: Date?
     let welcomeDescription: String?
-    let thumbImageURL: String?
-    let largeImageURL: String?
-    let isLiked: Bool?
+    let urls: Urls?
+    let likedByUser: Bool?
+
+    struct Urls: Codable {
+        let thumb: String?
+        let regular: String?
+        let full: String?
+        let small: String?
+        let raw: String?
+    }
+
+    var thumbImageURL: String? { urls?.thumb }
+    var largeImageURL: String? { urls?.regular }
+    var isLiked: Bool? { likedByUser }
 }
