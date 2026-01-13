@@ -69,7 +69,6 @@ final class ImagesListViewController: UIViewController {
             }
             return
         } else {
-            // same count, but content might have changed (likes)
             let visible = tableView.indexPathsForVisibleRows ?? []
             tableView.reloadRows(at: visible, with: .none)
         }
@@ -161,7 +160,8 @@ extension ImagesListViewController: UITableViewDelegate {
         let photo = photos[indexPath.row]
         let vc = SingleImageViewController()
         
-        guard let url = URL(string: photo.largeImageURL) else {
+        UIBlockingProgressHUD.show()
+        guard let url = URL(string: photo.fullImageURL) else {
             showError { [weak self] in
                 self?.openSingleImage(at: indexPath)
             }
@@ -169,6 +169,9 @@ extension ImagesListViewController: UITableViewDelegate {
         }
         
         KingfisherManager.shared.retrieveImage(with: url) { [weak self] result in
+            Task { @MainActor in
+                UIBlockingProgressHUD.dismiss()
+            }
             guard let self else { return }
             switch result {
             case .success(let value):
@@ -245,4 +248,3 @@ extension ImagesListViewController: ImagesListCellDelegate {
         }
     }
 }
-

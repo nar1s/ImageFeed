@@ -12,7 +12,7 @@ struct Photo {
     let size: CGSize
     let createdAt: Date?
     let welcomeDescription: String?
-    let thumbImageURL: String
+    let fullImageURL: String
     let largeImageURL: String
     let isLiked: Bool
 }
@@ -34,7 +34,7 @@ struct PhotoResult: Codable {
         let raw: String?
     }
 
-    var thumbImageURL: String? { urls?.thumb }
+    var fullImageURL: String? { urls?.full }
     var largeImageURL: String? { urls?.regular }
     var isLiked: Bool? { likedByUser }
 }

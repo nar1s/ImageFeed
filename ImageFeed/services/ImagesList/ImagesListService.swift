@@ -47,7 +47,7 @@ final class ImagesListService {
                         let id = result.id,
                         let width = result.width,
                         let height = result.height,
-                        let thumb = result.thumbImageURL,
+                        let full = result.fullImageURL,
                         let large = result.largeImageURL
                     else {
                         return nil
@@ -59,7 +59,7 @@ final class ImagesListService {
                         size: size,
                         createdAt: result.createdAt,
                         welcomeDescription: result.welcomeDescription,
-                        thumbImageURL: thumb,
+                        fullImageURL: full,
                         largeImageURL: large,
                         isLiked: result.isLiked ?? false
                     )
@@ -112,7 +112,7 @@ final class ImagesListService {
                             size: current.size,
                             createdAt: current.createdAt,
                             welcomeDescription: current.welcomeDescription,
-                            thumbImageURL: current.thumbImageURL,
+                            fullImageURL: current.fullImageURL,
                             largeImageURL: current.largeImageURL,
                             isLiked: newIsLiked
                         )

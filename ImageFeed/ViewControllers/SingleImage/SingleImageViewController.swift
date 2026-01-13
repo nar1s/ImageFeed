@@ -24,10 +24,6 @@ final class SingleImageViewController: UIViewController {
     private let backButton = UIButton(type: .custom)
     private let shareButton = UIButton(type: .custom)
     
-    // MARK: - State
-    
-    private var didApplyInitialZoom = false
-    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -140,35 +136,21 @@ final class SingleImageViewController: UIViewController {
         
         view.layoutIfNeeded()
         
-        let visibleSize = scrollView.bounds.size
-        guard visibleSize.width > 0, visibleSize.height > 0 else { return }
+        let bounds = scrollView.bounds.size
+        guard bounds.width > 0, bounds.height > 0 else { return }
         
         let imageSize = image.size
-        let hScale = visibleSize.width / imageSize.width
-        let vScale = visibleSize.height / imageSize.height
+        let hScale = bounds.width / imageSize.width
+        let vScale = bounds.height / imageSize.height
         let aspectFillScale = max(hScale, vScale)
         
-        let currentZoom = max(scrollView.zoomScale, 0.0001)
-        let currentOffset = scrollView.contentOffset
+        scrollView.minimumZoomScale = aspectFillScale
+        scrollView.maximumZoomScale = max(5.0, aspectFillScale)
         
-        let newMinZoom = min(aspectFillScale, currentZoom)
-        let newMaxZoom = max(scrollView.maximumZoomScale, newMinZoom + 0.0001)
-        
-        scrollView.minimumZoomScale = newMinZoom
-        scrollView.maximumZoomScale = newMaxZoom
-        
-        if didApplyInitialZoom == false {
-            scrollView.setZoomScale(aspectFillScale, animated: false)
-            centerContent()
-            didApplyInitialZoom = true
-        } else {
-            let clampedZoom = min(max(currentZoom, scrollView.minimumZoomScale), scrollView.maximumZoomScale)
-            if abs(clampedZoom - currentZoom) > .ulpOfOne {
-                scrollView.setZoomScale(clampedZoom, animated: false)
-            }
-            scrollView.setContentOffset(currentOffset, animated: false)
-            centerContent()
-        }
+        scrollView.setZoomScale(aspectFillScale, animated: false)
+
+        centerByOffsetIfNeeded()
+        centerContent()
     }
     
     private func centerContent() {
@@ -181,10 +163,29 @@ final class SingleImageViewController: UIViewController {
         scrollView.contentInset = UIEdgeInsets(top: insetY, left: insetX, bottom: insetY, right: insetX)
     }
     
+    private func centerByOffsetIfNeeded() {
+        let bounds = scrollView.bounds.size
+        let contentSize = scrollView.contentSize
+        
+        var offset = scrollView.contentOffset
+        var changed = false
+        
+        if contentSize.width > bounds.width {
+            offset.x = (contentSize.width - bounds.width) / 2
+            changed = true
+        }
+        if contentSize.height > bounds.height {
+            offset.y = (contentSize.height - bounds.height) / 2
+            changed = true
+        }
+        if changed {
+            scrollView.setContentOffset(offset, animated: false)
+        }
+    }
+    
     private func applyImage() {
         guard let image else { return }
         imageView.image = image
-        didApplyInitialZoom = false
         if view.window != nil {
             rescaleAndCenterImageInScrollView()
         }
