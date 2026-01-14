@@ -74,6 +74,11 @@ final class ProfileViewController: UIViewController {
         
         let logoutImage = UIImage(resource: .logoutButton).withRenderingMode(.alwaysOriginal)
         logoutButton.setImage(logoutImage, for: .normal)
+        
+        let action = UIAction { [weak self] _ in
+            self?.handleLogoutTapped()
+        }
+        logoutButton.addAction(action, for: .touchUpInside)
     }
     
     // MARK: - Private Methods
@@ -175,5 +180,25 @@ final class ProfileViewController: UIViewController {
             logoutButton.widthAnchor.constraint(equalToConstant: 44),
             logoutButton.heightAnchor.constraint(equalToConstant: 44)
         ])
+    }
+    
+    // MARK: - Actions
+    
+    private func handleLogoutTapped() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        
+        let logout = UIAlertAction(title: "Да", style: .default) { _ in
+            ProfileLogoutService.shared.logout()
+        }
+        let cancel = UIAlertAction(title: "Нет", style: .default)
+        
+        alert.addAction(logout)
+        alert.addAction(cancel)
+        
+        present(alert, animated: true)
     }
 }

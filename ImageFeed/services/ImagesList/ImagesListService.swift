@@ -139,6 +139,19 @@ final class ImagesListService {
         task.resume()
     }
     
+    func clearImagesList() {
+        photos.removeAll()
+        lastLoadedPage = nil
+        if let task = taskPageLoad {
+            task.cancel()
+            taskPageLoad = nil
+        }
+        if let task = taskLike {
+            task.cancel()
+            taskLike = nil
+        }
+    }
+    
     // MARK: - Private helpers
     
     private func makePhotosRequest(page: Int, perPage: Int) -> URLRequest? {
@@ -181,4 +194,3 @@ final class ImagesListService {
 private struct LikePhotoResponse: Decodable {
     let photo: PhotoResult?
 }
-

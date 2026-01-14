@@ -65,6 +65,14 @@ final class ProfileImageService {
         task.resume()
     }
     
+    func cleanProfileImage() {
+        avatarURL = nil
+        if let task {
+            task.cancel()
+            self.task = nil
+        }
+    }
+    
     private func makeProfileImageRequest(username: String, token: String) -> URLRequest? {
         guard let url = URL(string: "https://api.unsplash.com/users/\(username)") else {
             return nil
