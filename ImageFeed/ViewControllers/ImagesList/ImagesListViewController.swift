@@ -3,9 +3,16 @@ import Kingfisher
 
 final class ImagesListViewController: UIViewController {
 
-    // MARK: - Outlets
+    // MARK: - UI
 
-    @IBOutlet private weak var tableView: UITableView!
+    private let tableView: UITableView = {
+        let tv = UITableView(frame: .zero, style: .plain)
+        tv.backgroundColor = .clear
+        tv.separatorStyle = .none
+        tv.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        return tv
+    }()
 
     // MARK: - Properties
 
@@ -26,14 +33,30 @@ final class ImagesListViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupTableView()
-        configureImageView()
+        setupUI()
     }
 
     // MARK: - Private Methods
 
     private func setupTableView() {
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        view.addSubview(tableView)
+        NSLayoutConstraint.activate([
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        tableView.dataSource = self
+        tableView.delegate = self
+
+        tableView.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .yapBlack
+        setupTableView()
+        configureImageView()
     }
     
     private func configureImageView() {
@@ -248,3 +271,4 @@ extension ImagesListViewController: ImagesListCellDelegate {
         }
     }
 }
+

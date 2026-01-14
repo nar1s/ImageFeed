@@ -28,10 +28,13 @@ final class SplashViewController: UIViewController {
     
     // MARK: - Lifecycle
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        setupUI()
         
         if let token = storage.token {
             fetchProfile(token: token)
@@ -62,9 +65,9 @@ final class SplashViewController: UIViewController {
             return
         }
         
-        let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarController")
+        let tabBarController = TabBarController()
         window.rootViewController = tabBarController
+        window.makeKeyAndVisible()
     }
     
     private func fetchProfile(token: String) {
@@ -81,12 +84,14 @@ final class SplashViewController: UIViewController {
                 
             case let .failure(error):
                 print(error)
-                break
+                // В случае ошибки авторизации можно показать экран логина
+                self.presentAuthViewController()
             }
         }
     }
     
     private func presentAuthViewController() {
+        // Auth остается в сториборде — оставляем загрузку из Main.storyboard
         let storyboard = UIStoryboard(name: "Main", bundle: .main)
         guard let authViewController = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
             assertionFailure("Не удалось найти AuthViewController по идентификатору")
