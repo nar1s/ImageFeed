@@ -19,10 +19,46 @@ final class SingleImageViewController: UIViewController {
     
     // MARK: - UI
     
-    private let scrollView = UIScrollView()
-    private let imageView = UIImageView()
-    private let backButton = UIButton(type: .custom)
-    private let shareButton = UIButton(type: .custom)
+    private lazy var scrollView: UIScrollView = {
+        let sv = UIScrollView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        sv.delegate = self
+        sv.backgroundColor = .yapBlack
+        sv.showsVerticalScrollIndicator = false
+        sv.showsHorizontalScrollIndicator = false
+        return sv
+    }()
+    
+    private lazy var imageView: UIImageView = {
+        let iv = UIImageView()
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        iv.contentMode = .scaleAspectFill
+        iv.clipsToBounds = true
+        iv.backgroundColor = .yapBlack
+        return iv
+    }()
+    
+    private lazy var backButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let backImage = UIImage(resource: .backwardButton)
+        button.setImage(backImage, for: .normal)
+        button.tintColor = .white
+        button.layer.cornerRadius = 24
+        button.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var shareButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let shareImage = UIImage(resource: .sharingButton)
+        button.setImage(shareImage, for: .normal)
+        button.tintColor = .white
+        button.layer.cornerRadius = 25
+        button.addTarget(self, action: #selector(didTapShareButton), for: .touchUpInside)
+        return button
+    }()
     
     // MARK: - Lifecycle
     
@@ -45,33 +81,9 @@ final class SingleImageViewController: UIViewController {
     // MARK: - Setup
     
     private func setupViews() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.delegate = self
-        scrollView.backgroundColor = .yapBlack
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.showsHorizontalScrollIndicator = false
         view.addSubview(scrollView)
-        
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.backgroundColor = .yapBlack
         scrollView.addSubview(imageView)
-        
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        let backImage = UIImage(resource: .backwardButton)
-        backButton.setImage(backImage, for: .normal)
-        backButton.tintColor = .white
-        backButton.layer.cornerRadius = 24
-        backButton.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
         view.addSubview(backButton)
-        
-        shareButton.translatesAutoresizingMaskIntoConstraints = false
-        let shareImage = UIImage(resource: .sharingButton)
-        shareButton.setImage(shareImage, for: .normal)
-        shareButton.tintColor = .white
-        shareButton.layer.cornerRadius = 25
-        shareButton.addTarget(self, action: #selector(didTapShareButton), for: .touchUpInside)
         view.addSubview(shareButton)
     }
     

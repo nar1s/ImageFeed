@@ -16,7 +16,7 @@ final class ImagesListService {
     // MARK: - Properties
     private(set) var photos: [Photo] = []
     private var lastLoadedPage: Int?
-    static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
+    static let didChangeNotification = Notification.Name("ImagesListServiceDidChange")
     
     private let urlSession = URLSession.shared
     private var taskPageLoad: URLSessionTask?
@@ -29,7 +29,7 @@ final class ImagesListService {
     func fetchPhotosNextPage() {
         let nextPage = (lastLoadedPage ?? 0) + 1
         
-        if isLoading { return }
+        guard !isLoading else { return }
         isLoading = true
         
         guard let request = makePhotosRequest(page: nextPage, perPage: perPage) else {
@@ -65,23 +65,19 @@ final class ImagesListService {
                     )
                 }
                 
-                DispatchQueue.main.async {
-                    self.photos.append(contentsOf: mapped)
-                    self.lastLoadedPage = nextPage
-                    self.isLoading = false
-                    self.taskPageLoad = nil
-                    NotificationCenter.default.post(
-                        name: ImagesListService.didChangeNotification,
-                        object: self
-                    )
-                }
+                self.photos.append(contentsOf: mapped)
+                self.lastLoadedPage = nextPage
+                self.isLoading = false
+                self.taskPageLoad = nil
+                NotificationCenter.default.post(
+                    name: ImagesListService.didChangeNotification,
+                    object: self
+                )
                 
             case .failure(let error):
                 print("[ImagesListService.fetchPhotosNextPage]: [RequestError] request=\(request) error=\(error)")
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.taskPageLoad = nil
-                }
+                self.isLoading = false
+                self.taskPageLoad = nil
             }
         }
         
@@ -103,35 +99,32 @@ final class ImagesListService {
             switch result {
             case .success(let response):
                 let serverLiked = response.photo?.likedByUser
-                DispatchQueue.main.async {
-                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
-                        let current = self.photos[index]
-                        let newIsLiked = serverLiked ?? (!current.isLiked)
-                        let newPhoto = Photo(
-                            id: current.id,
-                            size: current.size,
-                            createdAt: current.createdAt,
-                            welcomeDescription: current.welcomeDescription,
-                            fullImageURL: current.fullImageURL,
-                            largeImageURL: current.largeImageURL,
-                            isLiked: newIsLiked
-                        )
-                        self.photos[index] = newPhoto
-                        NotificationCenter.default.post(
-                            name: ImagesListService.didChangeNotification,
-                            object: self
-                        )
-                    }
-                    self.taskLike = nil
-                    completion(.success(serverLiked ?? false))
+                
+                if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                    let current = self.photos[index]
+                    let newIsLiked = serverLiked ?? (!current.isLiked)
+                    let newPhoto = Photo(
+                        id: current.id,
+                        size: current.size,
+                        createdAt: current.createdAt,
+                        welcomeDescription: current.welcomeDescription,
+                        fullImageURL: current.fullImageURL,
+                        largeImageURL: current.largeImageURL,
+                        isLiked: newIsLiked
+                    )
+                    self.photos[index] = newPhoto
+                    NotificationCenter.default.post(
+                        name: ImagesListService.didChangeNotification,
+                        object: self
+                    )
                 }
+                self.taskLike = nil
+                completion(.success(serverLiked ?? false))
                 
             case .failure(let error):
                 print("[ImagesListService.changeLike]: [RequestError] request=\(request) error=\(error)")
-                DispatchQueue.main.async {
-                    self.taskLike = nil
-                    completion(.failure(error))
-                }
+                self.taskLike = nil
+                completion(.failure(error))
             }
         }
         

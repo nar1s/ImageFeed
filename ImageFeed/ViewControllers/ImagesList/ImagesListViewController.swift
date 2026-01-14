@@ -163,7 +163,7 @@ extension ImagesListViewController {
         if let date = photo.createdAt {
             cell.dateLabel.text = dateFormatter.string(from: date)
         } else {
-            cell.dateLabel.text = "unknown date"
+            cell.dateLabel.text = ""
         }
         
         cell.setIsLiked(photo.isLiked)
@@ -185,16 +185,17 @@ extension ImagesListViewController: UITableViewDelegate {
         
         UIBlockingProgressHUD.show()
         guard let url = URL(string: photo.fullImageURL) else {
-            showError { [weak self] in
-                self?.openSingleImage(at: indexPath)
-            }
+            UIBlockingProgressHUD.dismiss()
+            showError { }
             return
         }
         
         KingfisherManager.shared.retrieveImage(with: url) { [weak self] result in
+            // Скрываем HUD независимо от self
             Task { @MainActor in
                 UIBlockingProgressHUD.dismiss()
             }
+            // Далее self нужен только для UI-операций
             guard let self else { return }
             switch result {
             case .success(let value):
@@ -205,9 +206,7 @@ extension ImagesListViewController: UITableViewDelegate {
                 }
             case .failure:
                 DispatchQueue.main.async {
-                    self.showError { [weak self] in
-                        self?.openSingleImage(at: indexPath)
-                    }
+                    self.showError { }
                 }
             }
         }
@@ -241,8 +240,8 @@ extension ImagesListViewController: ImagesListCellDelegate {
         
         UIBlockingProgressHUD.show()
         imagesListService.changeLike(photoId: photo.id, isLike: photo.isLiked) { [weak self] result in
-            guard let self else { return }
             UIBlockingProgressHUD.dismiss()
+            guard let self else { return }
             
             switch result {
             case .success:
