@@ -93,8 +93,10 @@ final class SplashViewController: UIViewController {
             return
         }
         authViewController.delegate = self
-        authViewController.modalPresentationStyle = .fullScreen
-        present(authViewController, animated: true)
+        
+        let nav = UINavigationController(rootViewController: authViewController)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
     
     private func setupUI() {
@@ -125,4 +127,3 @@ extension SplashViewController: AuthViewControllerDelegate {
         fetchProfile(token: token)
     }
 }
-
