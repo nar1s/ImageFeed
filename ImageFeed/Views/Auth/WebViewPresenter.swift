@@ -7,10 +7,6 @@
 
 import Foundation
 
-enum WebViewConstants {
-    static let unsplashAuthorizeURLString = "https://unsplash.com/oauth/authorize"
-}
-
 public protocol WebViewPresenterProtocol {
     var view: WebViewViewControllerProtocol? { get set }
     func viewDidLoad()
@@ -27,7 +23,10 @@ final class WebViewPresenter: WebViewPresenterProtocol {
     }
     
     func viewDidLoad() {
-        guard let request = authHelper.authRequest() else { return }
+        guard let request = authHelper.authRequest() else {
+            assertionFailure("Failed to construct authorization URLRequest")
+            return
+        }
         
         view?.load(request: request)
         didUpdateProgressValue(0)
