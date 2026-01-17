@@ -148,7 +148,7 @@ final class ImagesListService {
     // MARK: - Private helpers
     
     private func makePhotosRequest(page: Int, perPage: Int) -> URLRequest? {
-        guard var baseURL = Constants.defaultBaseURL else { return nil }
+        var baseURL = Constants.defaultBaseURL
         baseURL.append(path: "photos")
         
         var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
@@ -170,7 +170,7 @@ final class ImagesListService {
     }
     
     private func makeChangeLikeRequest(photoId: String, isLike: Bool) -> URLRequest? {
-        guard var baseURL = Constants.defaultBaseURL else { return nil }
+        var baseURL = Constants.defaultBaseURL
         baseURL.append(path: "photos/\(photoId)/like")
         
         var request = URLRequest(url: baseURL)
