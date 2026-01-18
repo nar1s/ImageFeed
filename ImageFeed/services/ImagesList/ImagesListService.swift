@@ -8,7 +8,13 @@
 import Foundation
 import CoreGraphics
 
-final class ImagesListService {
+protocol ImagesListServiceProtocol: AnyObject {
+    var photos: [Photo] { get }
+    func fetchPhotosNextPage()
+    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Bool, Error>) -> Void)
+}
+
+final class ImagesListService: ImagesListServiceProtocol {
     
     static let shared = ImagesListService()
     private init() {}
@@ -174,7 +180,7 @@ final class ImagesListService {
         baseURL.append(path: "photos/\(photoId)/like")
         
         var request = URLRequest(url: baseURL)
-        request.httpMethod = isLike ? HTTPMethod.delete.rawValue : HTTPMethod.post.rawValue
+        request.httpMethod = isLike ? HTTPMethod.post.rawValue : HTTPMethod.delete.rawValue
         
         guard let token = OAuth2TokenStorage.shared.token else {
             return nil
@@ -186,4 +192,8 @@ final class ImagesListService {
 
 private struct LikePhotoResponse: Decodable {
     let photo: PhotoResult?
+}
+
+extension Notification.Name {
+    static let imagesListServiceDidChange = Notification.Name("ImagesListService.didChangeNotification")
 }

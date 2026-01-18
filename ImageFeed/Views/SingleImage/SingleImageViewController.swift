@@ -6,14 +6,15 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class SingleImageViewController: UIViewController {
     // MARK: - Public Properties
     
-    var image: UIImage? {
+    var photo: Photo? {
         didSet {
-            guard isViewLoaded else { return }
-            applyImage()
+            guard isViewLoaded, let photo else { return }
+            loadImage(from: photo)
         }
     }
     
@@ -69,7 +70,7 @@ final class SingleImageViewController: UIViewController {
         setupViews()
         setupConstraints()
         configureZoom()
-        applyImage()
+        if let photo = photo { loadImage(from: photo) }
     }
     
     override func viewDidLayoutSubviews() {
@@ -195,12 +196,38 @@ final class SingleImageViewController: UIViewController {
         }
     }
     
-    private func applyImage() {
-        guard let image else { return }
-        imageView.image = image
-        if view.window != nil {
-            rescaleAndCenterImageInScrollView()
+    private func loadImage(from photo: Photo) {
+        guard let url = URL(string: photo.largeImageURL) else { return }
+        
+        imageView.kf.indicatorType = .activity
+        UIBlockingProgressHUD.show()
+        imageView.kf.setImage(with: url) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                self.rescaleAndCenterImageInScrollView()
+            case .failure(let error):
+                self.showError()
+                print("Ошибка загрузки изображения: \(error)")
+            }
         }
+    }
+    
+    private func showError() {
+        guard let photo else { return }
+        
+        let alert = UIAlertController(
+            title: "Что-то пошло не так(",
+            message: "Попробовать ещё раз?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        alert.addAction(UIAlertAction(title: "ОК", style: .default) { _ in
+            self.loadImage(from: photo)
+        })
+        present(alert, animated: true)
     }
 }
 
