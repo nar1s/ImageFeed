@@ -8,6 +8,7 @@
 import UIKit
 
 protocol ProfilePresenterProtocol: AnyObject {
+    var view: ProfileViewControllerProtocol? { get set }
     func bind(view: ProfileViewControllerProtocol)
     func viewDidLoad()
     func didTapLogout()
@@ -15,7 +16,7 @@ protocol ProfilePresenterProtocol: AnyObject {
 }
 
 final class ProfilePresenter: ProfilePresenterProtocol {
-    private weak var view: ProfileViewControllerProtocol?
+    weak var view: ProfileViewControllerProtocol?
     
     private let profileService: ProfileServiceProtocol
     private let profileImageService: ProfileImageServiceProtocol
