@@ -12,7 +12,7 @@ protocol ProfileServiceProtocol {
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void)
 }
 
-final class ProfileService {
+final class ProfileService: ProfileServiceProtocol {
     static let shared = ProfileService()
     private init() {}
 
