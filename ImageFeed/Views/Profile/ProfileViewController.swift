@@ -35,6 +35,7 @@ final class ProfileViewController: UIViewController & ProfileViewControllerProto
         label.textColor = .yapWhite
         label.font = .systemFont(ofSize: 23, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = "Name Lastname"
         return label
     }()
     
@@ -43,6 +44,7 @@ final class ProfileViewController: UIViewController & ProfileViewControllerProto
         label.textColor = .yapGray
         label.font = .systemFont(ofSize: 13, weight: .regular)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.accessibilityIdentifier = "@username"
         return label
     }()
     

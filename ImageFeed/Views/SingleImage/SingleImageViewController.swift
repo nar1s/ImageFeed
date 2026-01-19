@@ -47,6 +47,7 @@ final class SingleImageViewController: UIViewController {
         button.tintColor = .white
         button.layer.cornerRadius = 24
         button.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
+        button.accessibilityIdentifier = "nav back button white"
         return button
     }()
     
