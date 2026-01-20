@@ -5,140 +5,164 @@
 //  Created by Павел Кузнецов on 18.01.2026.
 //
 
+
 @testable import ImageFeed
 import XCTest
 
 @MainActor
 final class ImagesListTests: XCTestCase {
-    
-    func testViewControllerCallsPresenterViewDidLoad() {
-        //given
-        let vc = ImagesListViewController()
-        let presenter = ImagesListPresenterSpy()
-        vc.configure(with: presenter)
-        
-        //when
-        vc.loadViewIfNeeded()
-        
-        //then
-        XCTAssertTrue(presenter.viewDidLoadCalled)
-    }
-    
-    func testViewDidLoadWhenServiceEmptyTriggersFetchNextPage() {
-        // given
-        let service = ImagesListServiceSpy()
-        service.photosStub = []
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
 
-        // when
+    // MARK: - Properties
+
+    private var service: ImagesListServiceMock!
+    private var presenter: ImagesListPresenter!
+    private var view: ImagesListViewControllerSpy!
+
+    // MARK: - Lifecycle
+
+    override func setUp() {
+        super.setUp()
+
+        service = ImagesListServiceMock()
+        presenter = ImagesListPresenter(photoService: service)
+        view = ImagesListViewControllerSpy()
+        presenter.view = view
+    }
+
+    override func tearDown() {
+        service = nil
+        presenter = nil
+        view = nil
+        super.tearDown()
+    }
+
+    // MARK: - Tests
+
+    func testViewControllerCallsPresenterViewDidLoad() {
+        // Given
+        let viewController = ImagesListViewController()
+        let presenterSpy = ImagesListPresenterMock()
+        viewController.configure(with: presenterSpy)
+
+        // When
+        viewController.loadViewIfNeeded()
+
+        // Then
+        XCTAssertTrue(presenterSpy.viewDidLoadCalled)
+    }
+
+    func testViewDidLoadWhenServiceEmptyTriggersFetchNextPage() {
+        // Given
+        service.photosStub = []
+
+        // When
         presenter.viewDidLoad()
 
-        // then
+        // Then
         XCTAssertEqual(service.fetchPhotosNextPageCallCount, 1)
     }
 
     func testDidScrollBottomTriggersFetchNextPage() {
-        // given
-        let service = ImagesListServiceSpy()
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
+        // Given
+        presenter.viewDidLoad()
 
-        // when
+        // When
         presenter.didScrollBottom()
 
-        // then
-        XCTAssertEqual(service.fetchPhotosNextPageCallCount, 1)
+        // Then
+        XCTAssertEqual(service.fetchPhotosNextPageCallCount, 2)
     }
 
     func testServiceNotificationReloadsDataOnFirstLoad() {
-        // given
-        let service = ImagesListServiceSpy()
+        // Given
         service.photosStub = []
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
         presenter.viewDidLoad()
 
-        service.photosStub = [makePhoto(id: "1", isLiked: false), makePhoto(id: "2", isLiked: true)]
+        service.photosStub = [
+            makePhoto(id: "1", isLiked: false),
+            makePhoto(id: "2", isLiked: true)
+        ]
 
-        // when
-        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: service)
+        // When
+        NotificationCenter.default.post(
+            name: ImagesListService.didChangeNotification,
+            object: service
+        )
+        waitForMainQueue()
 
-        // then (обработчик на .main)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        // Then
         XCTAssertTrue(view.reloadDataCalled)
     }
 
     func testDidTapPhotoOpensSingleImage() {
-        // given
-        let service = ImagesListServiceSpy()
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
-        presenter.viewDidLoad()
-
+        // Given
         let photo = makePhoto(id: "1", isLiked: false)
         service.photosStub = [photo]
-        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: service)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        presenter.viewDidLoad()
 
-        // when
+        NotificationCenter.default.post(
+            name: ImagesListService.didChangeNotification,
+            object: service
+        )
+        waitForMainQueue()
+
+        // When
         presenter.didTapPhoto(at: IndexPath(row: 0, section: 0))
 
-        // then
+        // Then
         XCTAssertEqual(view.openedPhoto?.id, "1")
     }
 
     func testDidTapLikeSuccessCallsServiceAndHidesLoading() {
-        // given
-        let service = ImagesListServiceSpy()
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
+        // Given
+        let photo = makePhoto(id: "1", isLiked: false)
+        service.photosStub = [photo]
+        service.changeLikeResult = .success(true)
         presenter.viewDidLoad()
 
-        service.photosStub = [makePhoto(id: "1", isLiked: false)]
-        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: service)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        NotificationCenter.default.post(
+            name: ImagesListService.didChangeNotification,
+            object: service
+        )
+        waitForMainQueue()
 
-        service.changeLikeResult = .success(true)
-
-        // when
+        // When
         presenter.didTapLike(at: IndexPath(row: 0, section: 0))
+        waitForMainQueue()
 
-        // then
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        // Then
         XCTAssertTrue(view.showLoadingCalled)
         XCTAssertTrue(view.hideLoadingCalled)
-
         XCTAssertEqual(service.changeLikeCalledWith?.photoId, "1")
-        // expected: лайкнуть, потому что было isLiked = false
         XCTAssertEqual(service.changeLikeCalledWith?.isLike, true)
     }
 
     func testDidTapLikeFailureShowsError() {
-        // given
-        let service = ImagesListServiceSpy()
-        let presenter = ImagesListPresenter(photoService: service)
-        let view = ImagesListViewControllerSpy()
-        presenter.view = view
+        // Given
+        let photo = makePhoto(id: "1", isLiked: false)
+        service.photosStub = [photo]
+        service.changeLikeResult = .failure(URLError(.badServerResponse))
         presenter.viewDidLoad()
 
-        service.photosStub = [makePhoto(id: "1", isLiked: false)]
-        NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: service)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        NotificationCenter.default.post(
+            name: ImagesListService.didChangeNotification,
+            object: service
+        )
+        waitForMainQueue()
 
-        service.changeLikeResult = .failure(URLError(.badServerResponse))
-
-        // when
+        // When
         presenter.didTapLike(at: IndexPath(row: 0, section: 0))
+        waitForMainQueue()
 
-        // then
-        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+        // Then
         XCTAssertTrue(view.showErrorCalled)
         XCTAssertTrue(view.hideLoadingCalled)
     }
+
+    // MARK: - Helpers
+
+    private func waitForMainQueue() {
+        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+    }
 }
+

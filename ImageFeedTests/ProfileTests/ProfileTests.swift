@@ -10,173 +10,144 @@ import XCTest
 
 @MainActor
 final class ProfileTests: XCTestCase {
-    
-    func testProfileViewControllerCallsViewDidLoad() {
-        // given
+
+    // MARK: - Properties
+
+    private var profileService: ProfileServiceStub!
+    private var imageService: ProfileImageServiceStub!
+    private var logoutService: LogoutServiceSpy!
+    private var notificationCenter: NotificationCenter!
+
+    private var presenter: ProfilePresenter!
+    private var view: ProfileViewControllerSpy!
+
+    // MARK: - Lifecycle
+
+    override func setUp() {
+        super.setUp()
+
+        profileService = ProfileServiceStub(profile: nil)
+        imageService = ProfileImageServiceStub(avatarURL: nil)
+        logoutService = LogoutServiceSpy()
+        notificationCenter = NotificationCenter()
+
+        presenter = ProfilePresenter(
+            profileService: profileService,
+            profileImageService: imageService,
+            logoutService: logoutService,
+            notificationCenter: notificationCenter
+        )
+        view = ProfileViewControllerSpy()
+        view.presenter = presenter
+        presenter.view = view
+    }
+
+    override func tearDown() {
+        profileService = nil
+        imageService = nil
+        logoutService = nil
+        notificationCenter = nil
+        presenter = nil
+        view = nil
+        super.tearDown()
+    }
+
+    // MARK: - Tests
+
+    func testViewControllerCallsPresenterViewDidLoad() {
+        // Given
         let viewController = ProfileViewController()
-        let presenter = ProfilePresenterSpy()
-        viewController.configure(with: presenter)
-        presenter.view = viewController
-        
-        // when
-        _ = viewController.view
-        
-        // then
-        XCTAssertTrue(presenter.viewDidLoadCalled)
+        let presenterSpy = ProfilePresenterMock()
+        viewController.configure(with: presenterSpy)
+        presenterSpy.view = viewController
+
+        // When
+        viewController.loadViewIfNeeded()
+
+        // Then
+        XCTAssertTrue(presenterSpy.viewDidLoadCalled)
     }
-    
-    
+
     func testPresenterCallsDisplayProfileWithPlaceholdersWhenProfileIsNil() {
-        // given
-        let viewController = ProfileViewControllerSpy()
-        let profileService = ProfileServiceStub(profile: nil)
-        let imageService = ProfileImageServiceStub(avatarURL: nil)
-        let logoutService = LogoutServiceSpy()
-        let notificationCenter = NotificationCenter()
-        
-        let presenter = ProfilePresenter(
-            profileService: profileService,
-            profileImageService: imageService,
-            logoutService: logoutService,
-            notificationCenter: notificationCenter
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
-        // when
+        // Given
+        profileService.profile = nil
+        imageService.avatarURL = nil
+
+        // When
         presenter.viewDidLoad()
-        
-        // then
-        XCTAssertTrue(viewController.displayProfileCalled)
-        XCTAssertEqual(viewController.name, "Имя не указано")
-        XCTAssertEqual(viewController.login, "@неизвестный_пользователь")
-        XCTAssertEqual(viewController.bio, "Профиль не заполнен")
+
+        // Then
+        XCTAssertTrue(view.displayProfileCalled)
+        XCTAssertEqual(view.name, "Имя не указано")
+        XCTAssertEqual(view.login, "@неизвестный_пользователь")
+        XCTAssertEqual(view.bio, "Профиль не заполнен")
     }
-    
+
     func testPresenterCallsDisplayProfileWithRealDataWhenProfileExists() {
-        // given
-        let viewController = ProfileViewControllerSpy()
+        // Given
         let profile = Profile(username: "pavel", firstName: "Павел", lastName: "Кузнецов", bio: "iOS developer")
-        let profileService = ProfileServiceStub(profile: profile)
-        let imageService = ProfileImageServiceStub(avatarURL: nil)
-        let logoutService = LogoutServiceSpy()
-        let notificationCenter = NotificationCenter()
-        
-        let presenter = ProfilePresenter(
-            profileService: profileService,
-            profileImageService: imageService,
-            logoutService: logoutService,
-            notificationCenter: notificationCenter
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
-        // when
+        profileService.profile = profile
+
+        // When
         presenter.viewDidLoad()
-        
-        // then
-        XCTAssertTrue(viewController.displayProfileCalled)
-        XCTAssertEqual(viewController.name, "Павел Кузнецов")
-        XCTAssertEqual(viewController.login, "@pavel")
-        XCTAssertEqual(viewController.bio, "iOS developer")
+
+        // Then
+        XCTAssertTrue(view.displayProfileCalled)
+        XCTAssertEqual(view.name, "Павел Кузнецов")
+        XCTAssertEqual(view.login, "@pavel")
+        XCTAssertEqual(view.bio, "iOS developer")
     }
-    
+
     func testPresenterCallsDisplayAvatarWithURLWhenAvatarURLExists() {
-        // given
-        let viewController = ProfileViewControllerSpy()
-        let profileService = ProfileServiceStub(profile: nil)
-        let imageService = ProfileImageServiceStub(avatarURL: "https://example.com/avatar.png")
-        let logoutService = LogoutServiceSpy()
-        let notificationCenter = NotificationCenter()
-        
-        let presenter = ProfilePresenter(
-            profileService: profileService,
-            profileImageService: imageService,
-            logoutService: logoutService,
-            notificationCenter: notificationCenter
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
-        // when
+        // Given
+        imageService.avatarURL = "https://example.com/avatar.png"
+
+        // When
         presenter.viewDidLoad()
-        
-        // then
-        XCTAssertTrue(viewController.displayAvatarCalled)
-        XCTAssertEqual(viewController.avatarURL?.absoluteString, "https://example.com/avatar.png")
+
+        // Then
+        XCTAssertTrue(view.displayAvatarCalled)
+        XCTAssertEqual(view.avatarURL?.absoluteString, "https://example.com/avatar.png")
     }
-    
+
     func testPresenterDidTapLogoutCallsShowLogoutConfirmation() {
-        // given
-        let viewController = ProfileViewControllerSpy()
-        let presenter = ProfilePresenter(
-            profileService: ProfileServiceStub(profile: nil),
-            profileImageService: ProfileImageServiceStub(avatarURL: nil),
-            logoutService: LogoutServiceSpy(),
-            notificationCenter: NotificationCenter()
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
-        // when
+        // When
         presenter.didTapLogout()
-        
-        // then
-        XCTAssertTrue(viewController.showLogoutConfirmationCalled)
+
+        // Then
+        XCTAssertTrue(view.showLogoutConfirmationCalled)
     }
-    
+
     func testPresenterDidConfirmLogoutCallsLogoutService() {
-        // given
-        let viewController = ProfileViewControllerSpy()
-        let logoutService = LogoutServiceSpy()
-        
-        let presenter = ProfilePresenter(
-            profileService: ProfileServiceStub(profile: nil),
-            profileImageService: ProfileImageServiceStub(avatarURL: nil),
-            logoutService: logoutService,
-            notificationCenter: NotificationCenter()
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
-        // when
+        // When
         presenter.didConfirmLogout()
-        
-        // then
+
+        // Then
         XCTAssertTrue(logoutService.logoutCalled)
     }
-    
+
     func testPresenterUpdatesAvatarOnNotification() async {
-        // given
-        let viewController = ProfileViewControllerSpy()
-        let profileService = ProfileServiceStub(profile: nil)
-        let imageService = ProfileImageServiceStub(avatarURL: "https://example.com/avatar.png")
-        let logoutService = LogoutServiceSpy()
-        let notificationCenter = NotificationCenter()
-        
-        let presenter = ProfilePresenter(
-            profileService: profileService,
-            profileImageService: imageService,
-            logoutService: logoutService,
-            notificationCenter: notificationCenter
-        )
-        viewController.presenter = presenter
-        presenter.view = viewController
-        
+        // Given
+        imageService.avatarURL = "https://example.com/avatar.png"
         presenter.viewDidLoad()
-        viewController.displayAvatarCalled = false
-        viewController.avatarURL = nil
-        
+        view.displayAvatarCalled = false
+        view.avatarURL = nil
+
         let exp = expectation(description: "Avatar updated after notification")
-        viewController.onDisplayAvatar = { _ in exp.fulfill() }
-        
-        // when
+        view.onDisplayAvatar = { _ in exp.fulfill() }
+
+        // When
         notificationCenter.post(name: imageService.didChangeNotification, object: nil)
-        
-        // then
+
+        // Then
         await fulfillment(of: [exp], timeout: 1.0)
-        XCTAssertTrue(viewController.displayAvatarCalled)
-        XCTAssertEqual(viewController.avatarURL?.absoluteString, "https://example.com/avatar.png")
+        XCTAssertTrue(view.displayAvatarCalled)
+        XCTAssertEqual(view.avatarURL?.absoluteString, "https://example.com/avatar.png")
+    }
+
+    // MARK: - Helpers
+    private func waitForMainQueue() {
+        RunLoop.main.run(until: Date().addingTimeInterval(0.02))
     }
 }
 

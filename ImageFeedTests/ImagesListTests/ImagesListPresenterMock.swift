@@ -8,7 +8,7 @@
 @testable import ImageFeed
 import UIKit
 
-final class ImagesListPresenterSpy: ImagesListPresenterProtocol {
+final class ImagesListPresenterMock: ImagesListPresenterProtocol {
     var view: ImageFeed.ImagesListViewControllerProtocol?
     
     var photosCount: Int = 0

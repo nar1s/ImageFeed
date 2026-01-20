@@ -8,32 +8,24 @@
 import UIKit
 import Kingfisher
 
-import Foundation
-
-protocol ImagesListPresenterProtocol: AnyObject {
-    var view: ImagesListViewControllerProtocol? { get set }
-
-    var photosCount: Int { get }
-    func photo(at indexPath: IndexPath) -> Photo?
-
-    func viewDidLoad()
-    func didScrollBottom()
-    func didTapPhoto(at indexPath: IndexPath)
-    func didTapLike(at indexPath: IndexPath)
-}
-
 final class ImagesListPresenter: ImagesListPresenterProtocol {
     
+    // MARK: - Properties
+
     weak var view: ImagesListViewControllerProtocol?
     private let photoService: ImagesListServiceProtocol
-    
+
     private var photos: [Photo] = []
-    
+
+    var photosCount: Int {
+        photos.count
+    }
+
+    // MARK: - Init
+
     init(photoService: ImagesListServiceProtocol) {
         self.photoService = photoService
     }
-    
-    var photosCount: Int { photos.count }
     
     func photo(at indexPath: IndexPath) -> Photo? {
         guard indexPath.row < photos.count else { return nil }

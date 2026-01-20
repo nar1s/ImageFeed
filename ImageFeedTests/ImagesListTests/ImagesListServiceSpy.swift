@@ -8,7 +8,7 @@
 @testable import ImageFeed
 import UIKit
 
-final class ImagesListServiceSpy: ImagesListServiceProtocol {
+final class ImagesListServiceMock: ImagesListServiceProtocol {
     var photosStub: [Photo] = []
     var photos: [ImageFeed.Photo] { photosStub }
     

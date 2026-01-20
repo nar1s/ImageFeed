@@ -1,19 +1,6 @@
 import UIKit
 import Kingfisher
 
-protocol ImagesListViewControllerProtocol: AnyObject {
-    func reloadData()
-    func insertRows(at indexPaths: [IndexPath])
-    func reloadRow(at indexPath: IndexPath)
-
-    func showLoadingIndicator()
-    func hideLoadingIndicator()
-    func showError(_ error: Error)
-
-    func openSingleImage(_ photo: Photo)
-}
-
-
 final class ImagesListViewController: UIViewController & ImagesListViewControllerProtocol {
     
     var presenter: ImagesListPresenterProtocol?

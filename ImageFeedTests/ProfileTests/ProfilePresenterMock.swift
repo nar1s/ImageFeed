@@ -8,7 +8,7 @@
 @testable import ImageFeed
 import UIKit
 
-final class ProfilePresenterSpy: ProfilePresenterProtocol {
+final class ProfilePresenterMock: ProfilePresenterProtocol {
     
     weak var view: ProfileViewControllerProtocol?
 

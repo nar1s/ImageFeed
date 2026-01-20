@@ -8,13 +8,6 @@
 import UIKit
 import Kingfisher
 
-protocol ProfileViewControllerProtocol: AnyObject {
-    var presenter: ProfilePresenterProtocol? { get set }
-    func displayProfile(name: String, login: String, bio: String)
-    func displayAvatar(url: URL?)
-    func showLogoutConfirmation()
-}
-
 final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
     
     var presenter: ProfilePresenterProtocol?

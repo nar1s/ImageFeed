@@ -7,14 +7,6 @@
 
 import UIKit
 
-protocol ProfilePresenterProtocol: AnyObject {
-    var view: ProfileViewControllerProtocol? { get set }
-    func bind(view: ProfileViewControllerProtocol)
-    func viewDidLoad()
-    func didTapLogout()
-    func didConfirmLogout()
-}
-
 final class ProfilePresenter: ProfilePresenterProtocol {
     weak var view: ProfileViewControllerProtocol?
     
