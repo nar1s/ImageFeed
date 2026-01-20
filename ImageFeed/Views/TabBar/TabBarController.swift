@@ -20,6 +20,8 @@ final class TabBarController: UITabBarController {
 
     private func setupViewControllers() {
         let imagesListViewController = ImagesListViewController()
+        let imagesListPresenter = ImagesListPresenter(photoService: ImagesListService.shared)
+        imagesListViewController.configure(with: imagesListPresenter)
         
         imagesListViewController.tabBarItem = UITabBarItem(
             title: "",
@@ -28,6 +30,12 @@ final class TabBarController: UITabBarController {
         )
 
         let profileViewController = ProfileViewController()
+        let profilePresenter = ProfilePresenter(
+            profileService: ProfileService.shared,
+            profileImageService: ProfileImageService.shared,
+            logoutService: ProfileLogoutService.shared
+        )
+        profileViewController.configure(with: profilePresenter)
 
         profileViewController.tabBarItem = UITabBarItem(
             title: "",

@@ -7,13 +7,18 @@
 
 import Foundation
 
-final class ProfileImageService {
+protocol ProfileImageServiceProtocol: AnyObject {
+    var avatarURL: String? { get }
+    var didChangeNotification: Notification.Name { get }
+}
+
+final class ProfileImageService: ProfileImageServiceProtocol {
     static let shared = ProfileImageService()
     private init() {}
 
     private(set) var avatarURL: String?
     private var task: URLSessionTask?
-    static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
+    var didChangeNotification = Notification.Name("ProfileImageProviderDidChange")
        
     func fetchProfileImage(username: String, completion: @escaping (Result<String, Error>) -> Void) {
         task?.cancel()
@@ -49,7 +54,7 @@ final class ProfileImageService {
                 DispatchQueue.main.async {
                     NotificationCenter.default
                         .post(
-                            name: ProfileImageService.didChangeNotification,
+                            name: self.didChangeNotification,
                             object: self,
                             userInfo: ["URL": self.avatarURL ?? ""]
                         )
